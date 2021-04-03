@@ -33,12 +33,17 @@
 open Ppxlib
 module RE = Reason_toolchain.RE
 
+(* Taken from OCaml, as it's only available startting with 4.11 *)
+let lexbuf_set_position (lexbuf : Lexing.lexbuf) position =
+  lexbuf.lex_curr_p <- { position with pos_fname = lexbuf.lex_curr_p.pos_fname };
+  lexbuf.lex_abs_pos <- position.pos_cnum
+
 let setup_lexbuf_from_string ~loc ~parser source =
   try
     let lexbuf = Lexing.from_string source in
     (* Sets the position of the lexing buffer to be the one at the start of the
        quoted extension, so that we can get precise error messages. *)
-    Lexing.set_position lexbuf loc.loc_start;
+    lexbuf_set_position lexbuf loc.loc_start;
     parser lexbuf
   with
   | Reason_errors.Reason_error _ as rexn ->
