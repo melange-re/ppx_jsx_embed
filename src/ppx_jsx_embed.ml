@@ -56,7 +56,9 @@ let parse_reason_impl omp_ast =
         omp_ast
         (backport_letopt_mapper remove_stylistic_attrs_mapper))
   in
-  Reason_toolchain.To_current.copy_structure omp_ast
+  (* Downside of Reason vendoring its own migrate_parsetree is this double copy. *)
+  Ppxlib.Selected_ast.Of_ocaml.copy_structure
+    (Reason_toolchain.To_current.copy_structure omp_ast)
 
 let parse_implementation_source ~loc source =
   let omp_ast =
