@@ -1,0 +1,6 @@
+(library
+ (public_name ppx_jsx_embed)
+ (kind ppx_rewriter)
+ (libraries ppxlib reason)
+ (preprocess
+  (pps ppxlib.metaquot)))
