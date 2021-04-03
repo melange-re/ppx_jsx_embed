@@ -36,6 +36,8 @@ module RE = Reason_toolchain.RE
 let setup_lexbuf_from_string ~loc ~parser source =
   try
     let lexbuf = Lexing.from_string source in
+    (* Sets the position of the lexing buffer to be the one at the start of the
+       quoted extension, so that we can get precise error messages. *)
     Lexing.set_position lexbuf loc.loc_start;
     parser lexbuf
   with

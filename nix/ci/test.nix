@@ -4,33 +4,31 @@ let
   pkgs = import ../sources.nix { inherit ocamlVersion; };
   inherit (pkgs) lib stdenv fetchTarball ocamlPackages;
 
-  piafPkgs =  (import ./.. {
-    inherit pkgs;
+  pkg = pkgs.callPackage ./.. {
     doCheck = true;
-  });
-
-  test = pkg:
-  let piafDrvs = lib.filterAttrs (_: value: lib.isDerivation value) pkg;
-  in
-  stdenv.mkDerivation {
-    name = "piaf-tests";
-    src = lib.filterGitSource {
-      src = ./../..;
-      files = [ ".ocamlformat" ];
-    };
-    dontBuild = true;
-    installPhase = ''
-      touch $out
-    '';
-    buildInputs = (lib.attrValues piafDrvs) ++ (with ocamlPackages; [ ocaml dune findlib pkgs.ocamlformat ]);
-    doCheck = true;
-    checkPhase = ''
-      # Check code is formatted with OCamlformat
-      dune build @fmt
-    '';
   };
+  drvs = lib.filterAttrs (_: value: lib.isDerivation value) pkg;
+
 in
-  {
-    native = test piafPkgs.native;
-    musl64 = test piafPkgs.musl64;
-  }
+
+stdenv.mkDerivation {
+  name = "ppx_jsx_embed-tests";
+  src = lib.filterGitSource {
+    src = ./../..;
+    files = [ ".ocamlformat" ];
+  };
+
+  dontBuild = true;
+
+  installPhase = ''
+    touch $out
+  '';
+
+  buildInputs = (lib.attrValues drvs) ++ (with ocamlPackages; [ ocaml dune findlib pkgs.ocamlformat ]);
+
+  doCheck = true;
+  checkPhase = ''
+    # Check code is formatted with OCamlformat
+    dune build @fmt
+  '';
+}
