@@ -20,7 +20,7 @@
   "Ppx_jsx_embed allows using Reason JSX inside `{%jsx| <reason-here> |}`")
  (depends
   (ocaml
-   (>= "4.08"))
+   (>= "4.11"))
   reason
   (ppxlib
    (>= "0.22"))))

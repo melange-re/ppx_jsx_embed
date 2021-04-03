@@ -36,6 +36,8 @@ module RE = Reason_toolchain.RE
 let setup_lexbuf_from_string ~loc ~parser source =
   try
     let lexbuf = Lexing.from_string source in
+    (* Sets the position of the lexing buffer to be the one at the start of the
+       quoted extension, so that we can get precise error messages. *)
     Lexing.set_position lexbuf loc.loc_start;
     parser lexbuf
   with
@@ -54,7 +56,9 @@ let parse_reason_impl omp_ast =
         omp_ast
         (backport_letopt_mapper remove_stylistic_attrs_mapper))
   in
-  Reason_toolchain.To_current.copy_structure omp_ast
+  (* Downside of Reason vendoring its own migrate_parsetree is this double copy. *)
+  Ppxlib.Selected_ast.Of_ocaml.copy_structure
+    (Reason_toolchain.To_current.copy_structure omp_ast)
 
 let parse_implementation_source ~loc source =
   let omp_ast =

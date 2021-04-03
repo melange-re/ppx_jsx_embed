@@ -1,4 +1,4 @@
-{ ocamlVersion ? "4_12" }:
+{ ocamlVersion ? "4_11" }:
 let
   overlays =
     builtins.fetchTarball
