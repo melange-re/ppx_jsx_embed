@@ -1,0 +1,5 @@
+(executable
+ (package ppx_jsx_embed)
+ (name bin)
+ (public_name ppx_jsx_embed)
+ (libraries ppx_jsx_embed))

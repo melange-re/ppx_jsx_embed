@@ -10,7 +10,7 @@ homepage: "https://github.com/melange/ppx_jsx_embed"
 bug-reports: "https://github.com/melange/ppx_jsx_embed/issues"
 depends: [
   "dune" {>= "2.0"}
-  "ocaml" {>= "4.08"}
+  "ocaml" {>= "4.11"}
   "reason"
   "ppxlib" {>= "0.22"}
 ]
