@@ -66,37 +66,23 @@ let parse_implementation_source ~loc source =
   in
   parse_reason_impl omp_ast
 
-let mapper =
-  object
-    inherit Ast_traverse.map as super
+let jsx_rule =
+  let expand ~loc ~path:_ reason_source =
+    match parse_implementation_source ~loc reason_source with
+    | [ { pstr_desc = Pstr_eval (reason_expression, _); _ } ] ->
+      reason_expression
+    | _ ->
+      assert false
+  in
+  let extension =
+    Extension.declare
+      "jsx"
+      Extension.Context.expression
+      Ast_pattern.(single_expr_payload (estring __))
+      expand
+  in
+  Context_free.Rule.extension extension
 
-    method! expression expr =
-      match expr.pexp_desc with
-      | Pexp_extension
-          ( { txt = "jsx"; _ }
-          , PStr
-              [ { pstr_desc =
-                    Pstr_eval
-                      ( { pexp_desc =
-                            Pexp_constant (Pconst_string (reason, loc, _))
-                        ; _
-                        }
-                      , _attrs )
-                ; _
-                }
-              ] ) ->
-        (match parse_implementation_source ~loc reason with
-        | [ { pstr_desc = Pstr_eval (reason_expression, _); _ } ] ->
-          super#expression reason_expression
-        | _ ->
-          assert false)
-      | _ ->
-        super#expression expr
-  end
+let extension = Extension.declare
 
-let structure_mapper s = mapper#structure s
-
-let () =
-  Ppxlib.Driver.register_transformation
-    ~preprocess_impl:structure_mapper
-    "jsx_embed"
+let () = Driver.register_transformation ~rules:[ jsx_rule ] "jsx_embed"
