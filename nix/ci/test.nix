@@ -1,22 +1,42 @@
 { ocamlVersion }:
 
 let
-  pkgs = import ../sources.nix { inherit ocamlVersion; };
-  inherit (pkgs) lib stdenv fetchTarball ocamlPackages;
+  flake = builtins.getFlake (builtins.unsafeDiscardStringContext ./../..);
+  system = builtins.currentSystem;
+  pkgs = flake.inputs.nixpkgs.legacyPackages."${system}".extend (self: super: {
+    ocamlPackages = super.ocaml-ng.ocamlPackages_5_0.overrideScope' (oself: osuper: {
+      reason = osuper.reason.overrideAttrs (o: {
+        src = super.fetchFromGitHub {
+          owner = "reasonml";
+          repo = "reason";
+          rev = "6401d10f2d1e2c8e1973c0de61d3c27d70b37248";
+          hash = "sha256-QJORWjqGuz6pLhZTFLhWxofDsa4dAquVtwhdbGrv0pE=";
+        };
+        propagatedBuildInputs = o.propagatedBuildInputs ++ (with oself; [ dune-build-info ppxlib ]);
+      });
+    });
+  });
 
-  pkg = pkgs.callPackage ./.. {
-    doCheck = true;
+  lock = builtins.fromJSON (builtins.readFile ./../../flake.lock);
+  nix-filter-src = builtins.fetchGit {
+    url = with lock.nodes.nix-filter.locked; "https://github.com/${owner}/${repo}";
+    inherit (lock.nodes.nix-filter.locked) rev;
+    # inherit (lock.nodes.nixpkgs.original) ref;
+    allRefs = true;
   };
-  drvs = lib.filterAttrs (_: value: lib.isDerivation value) pkg;
+  nix-filter = import "${nix-filter-src}";
 
+  inherit (pkgs) stdenv ocamlPackages callPackage;
+
+  pkg = callPackage ./.. {
+    doCheck = false;
+    inherit nix-filter;
+  };
 in
 
 stdenv.mkDerivation {
   name = "ppx_jsx_embed-tests";
-  src = lib.filterGitSource {
-    src = ./../..;
-    files = [ ".ocamlformat" ];
-  };
+  src = ./../..;
 
   dontBuild = true;
 
@@ -24,7 +44,8 @@ stdenv.mkDerivation {
     touch $out
   '';
 
-  buildInputs = (lib.attrValues drvs) ++ (with ocamlPackages; [ ocaml dune findlib pkgs.ocamlformat ]);
+  nativeBuildInputs = with ocamlPackages; [ ocaml dune findlib ocamlformat ];
+  buildInputs = [ pkg ];
 
   doCheck = true;
   checkPhase = ''
