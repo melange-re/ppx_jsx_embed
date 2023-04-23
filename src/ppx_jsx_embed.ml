@@ -50,9 +50,9 @@ let setup_lexbuf_from_string ~loc ~parser source =
 let parse_reason_impl omp_ast =
   let omp_ast =
     Reason_syntax_util.(
-      apply_mapper_to_structure
-        omp_ast
-        (backport_letopt_mapper remove_stylistic_attrs_mapper))
+      omp_ast
+      |> apply_mapper_to_structure backport_letopt_mapper
+      |> apply_mapper_to_structure remove_stylistic_attrs_mapper)
   in
   (* Downside of Reason vendoring its own migrate_parsetree is this double
      copy. *)
