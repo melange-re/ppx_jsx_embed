@@ -41,13 +41,11 @@ let setup_lexbuf_from_string ~loc ~parser source =
     Lexing.set_position lexbuf loc.loc_start;
     parser lexbuf
   with
-  | Reason_errors.Reason_error _ as rexn ->
-    raise rexn
+  | Reason_errors.Reason_error _ as rexn -> raise rexn
   | Sys_error _ as exn ->
     (* file doesn't exist *)
     raise exn
-  | _ ->
-    failwith "NYI: different error"
+  | _ -> failwith "NYI: different error"
 
 let parse_reason_impl omp_ast =
   let omp_ast =
@@ -56,7 +54,8 @@ let parse_reason_impl omp_ast =
         omp_ast
         (backport_letopt_mapper remove_stylistic_attrs_mapper))
   in
-  (* Downside of Reason vendoring its own migrate_parsetree is this double copy. *)
+  (* Downside of Reason vendoring its own migrate_parsetree is this double
+     copy. *)
   Ppxlib.Selected_ast.Of_ocaml.copy_structure
     (Reason_toolchain.To_current.copy_structure omp_ast)
 
@@ -71,8 +70,7 @@ let jsx_rule =
     match parse_implementation_source ~loc reason_source with
     | [ { pstr_desc = Pstr_eval (reason_expression, _); _ } ] ->
       reason_expression
-    | _ ->
-      assert false
+    | _ -> assert false
   in
   let extension =
     Extension.declare
@@ -84,5 +82,4 @@ let jsx_rule =
   Context_free.Rule.extension extension
 
 let extension = Extension.declare
-
 let () = Driver.register_transformation ~rules:[ jsx_rule ] "jsx_embed"
