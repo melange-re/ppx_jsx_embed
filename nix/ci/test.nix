@@ -4,7 +4,7 @@ let
   flake = builtins.getFlake (builtins.unsafeDiscardStringContext ./../..);
   system = builtins.currentSystem;
   pkgs = flake.inputs.nixpkgs.legacyPackages."${system}".extend (self: super: {
-    ocamlPackages = super.ocaml-ng.ocamlPackages_5_0.overrideScope' (oself: osuper: {
+    ocamlPackages = super.ocaml-ng."ocamlPackages_${ocamlVersion}".overrideScope' (oself: osuper: {
       reason = osuper.reason.overrideAttrs (o: {
         src = super.fetchFromGitHub {
           owner = "reasonml";
